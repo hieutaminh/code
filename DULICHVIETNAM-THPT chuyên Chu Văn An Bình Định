@@ -1,0 +1,91 @@
+#include <bits/stdc++.h>
+#define maxn 1005
+#define pii pair<long long, long long>
+#define fi first
+#define se second
+#define gb(x,i) ((x >> i)&1)
+using namespace std;
+int n, m, k, c[maxn];
+long long a[maxn][maxn], dp[1<<20][21];
+vector <pii> ke[maxn];
+
+void dijkstra(int x)
+{
+    priority_queue<pii, vector<pii>, greater<pii>> q;
+    long long d[maxn], w, u, v;
+    memset(d, 60, sizeof d);
+    d[x] = 0;
+    q.push({0,x});
+    while(!q.empty())
+    {
+        w = q.top().fi;
+        u = q.top().se;
+        q.pop();
+        if(w > d[u])continue;
+        for(pii g : ke[u])
+        {
+            v = g.fi;
+            if(d[v] > d[u] + g.se)
+            {
+                d[v] = d[u] + g.se;
+                q.push({d[v],v});
+            }
+        }
+    }
+    for(int i = 1; i <= n; i ++)a[x][i] = d[i];
+}
+int main()
+{
+    ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+    //freopen("meo.inp","r",stdin);
+    cin >> n >> m >> k;
+    for(int i = 1; i <= k; i ++)cin >> c[i];
+    long long u,v,w;
+    for(int i = 1; i <= m; i ++)
+    {
+        cin >> u >> v >> w;
+        ke[u].push_back({v,w});
+    }
+    memset(a,60,sizeof a);
+    dijkstra(1);
+    for(int i = 1; i <= k; i ++)dijkstra(c[i]);
+    memset(dp, 60, sizeof dp);
+    for(int i = 0; i < k; i ++)dp[(1<<i)][i] = a[1][c[i+1]];
+
+    for(int mask = 1; mask < (1 << k); mask ++)
+    {
+        int countbit = __builtin_popcount(mask);
+        if(countbit == 1)continue;
+        for(int i = 0; i < k; i ++)if(gb(mask,i))
+        {
+            int pre_mask = mask - (1<<i);
+            for(int j = 0; j < k; j ++)if(gb(pre_mask, j))
+            {
+                if(countbit == k)
+                {
+                    dp[mask][i] = min(dp[mask][i], dp[pre_mask][j] + a[c[j+1]][c[i+1]] + a[c[i+1]][1]);
+                }
+                else dp[mask][i] = min(dp[mask][i], dp[pre_mask][j] + a[c[j+1]][c[i+1]]);
+            }
+        }
+    }
+    long long res = 1e18;
+    for(int i = 0; i < k; i ++)res = min(res, dp[(1<<k)-1][i]);
+    if(res == 1e18)cout << -1;
+    else cout << res;
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
